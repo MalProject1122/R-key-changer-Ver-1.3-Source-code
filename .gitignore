@@ -1,0 +1,10 @@
+# PyInstallerのビルド生成物（.exeはGitHub Releasesで配布し、リポジトリには含めない）
+build/
+dist/
+
+# 実行時に自動生成される、利用者ごとの設定ファイル
+app_settings.json
+
+# Python
+__pycache__/
+*.pyc
