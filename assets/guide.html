@@ -1,0 +1,781 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>R-key changer 使い方ガイド</title>
+<style>
+  :root{
+    --bg:#fafbfe;
+    --panel:#ffffff;
+    --border:#e2e8f0;
+    --text:#1a2233;
+    --muted:#5b6b85;
+    --cyan:#0891b2;
+    --cyan-soft:#e6f7fa;
+    --violet:#7c3aed;
+    --violet-soft:#f3ecfe;
+    --amber:#b45309;
+    --amber-soft:#fef3e0;
+    --danger:#be123c;
+    --danger-soft:#fde8ee;
+    --green:#0f766e;
+    --green-soft:#e6f7f4;
+    --font: "Yu Gothic", "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif;
+    --mono: "Consolas", "BIZ UDGothic", monospace;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0; font-family:var(--font); background:var(--bg); color:var(--text);
+    line-height:1.85; font-size:16px;
+  }
+  a{color:var(--cyan);}
+  .layout{display:flex; max-width:1100px; margin:0 auto; align-items:flex-start;}
+  nav.toc{
+    position:sticky; top:0; align-self:flex-start;
+    width:250px; flex:none; height:100vh; overflow-y:auto;
+    padding:28px 16px 40px 24px; border-right:1px solid var(--border);
+  }
+  nav.toc .app-name{font-weight:700; font-size:17px; margin-bottom:2px;}
+  nav.toc .app-sub{color:var(--muted); font-size:12.5px; margin-bottom:20px;}
+  nav.toc .search-hint{
+    background:var(--cyan-soft); border-radius:8px; padding:9px 11px;
+    font-size:12.5px; color:#0e6377; margin-bottom:14px; line-height:1.6;
+  }
+  nav.toc .search-hint kbd{
+    background:#fff; border:1px solid #b7e2ea; border-radius:4px; padding:1px 6px;
+    font-family:var(--mono); font-size:11.5px;
+  }
+
+  .search-box{margin-bottom:22px;}
+  .search-box .row{display:flex; gap:6px;}
+  .search-box input[type="text"]{
+    flex:1; min-width:0; padding:8px 10px; border:1px solid var(--border);
+    border-radius:8px; font-size:14px; font-family:var(--font);
+  }
+  .search-box input[type="text"]:focus{outline:2px solid var(--cyan); outline-offset:1px;}
+  .search-box button{
+    border:none; border-radius:8px; padding:8px 12px; font-size:13.5px;
+    font-family:var(--font); cursor:pointer; white-space:nowrap;
+  }
+  .search-box .btn-find{background:var(--cyan); color:#fff; font-weight:700;}
+  .search-box .btn-next{background:#eef1f6; color:var(--text); margin-top:6px; width:100%;}
+  .search-box .result{font-size:12.5px; color:var(--muted); margin-top:6px; min-height:1.4em;}
+  mark.hit{background:#fde68a; color:inherit; border-radius:2px;}
+  mark.hit.current{background:var(--cyan); color:#fff;}
+  nav.toc ol{list-style:none; margin:0; padding:0;}
+  nav.toc li{margin:0;}
+  nav.toc a{
+    display:block; padding:7px 10px; border-radius:8px; color:var(--text);
+    text-decoration:none; font-size:14px;
+  }
+  nav.toc a:hover{background:var(--cyan-soft); color:var(--cyan);}
+  nav.toc .sub a{padding-left:22px; font-size:13px; color:var(--muted);}
+
+  main{flex:1; min-width:0; padding:36px 40px 100px; max-width:760px;}
+  main h1{font-size:26px; margin:0 0 6px;}
+  main .lead{color:var(--muted); font-size:15px; margin:0 0 30px;}
+
+  section{margin-bottom:44px; scroll-margin-top:20px;}
+  section h2{
+    font-size:20px; margin:0 0 4px; padding-bottom:10px;
+    border-bottom:2px solid var(--border); display:flex; align-items:baseline; gap:8px;
+  }
+  section h2 .num{
+    font-family:var(--mono); color:var(--cyan); font-size:14px; font-weight:700;
+  }
+  section h3{font-size:16px; margin:24px 0 8px; color:var(--text);}
+  section p{margin:0 0 14px;}
+  section ul, section ol{margin:0 0 14px; padding-left:1.4em;}
+  section li{margin-bottom:6px;}
+
+  .callout{
+    border-radius:10px; padding:14px 16px; margin:16px 0; font-size:14.5px;
+  }
+  .callout.warn{background:var(--amber-soft); border:1px solid #f2d199;}
+  .callout.warn::before{content:"⚠ 注意"; display:block; font-weight:700; color:var(--amber); margin-bottom:4px;}
+  .callout.tip{background:var(--cyan-soft); border:1px solid #b7e2ea;}
+  .callout.tip::before{content:"💡 ヒント"; display:block; font-weight:700; color:#0e6377; margin-bottom:4px;}
+  .callout.note{background:var(--violet-soft); border:1px solid #ddc9fb;}
+  .callout.note::before{content:"📝 補足"; display:block; font-weight:700; color:var(--violet); margin-bottom:4px;}
+
+  .steps{counter-reset:step; list-style:none; padding:0; margin:18px 0;}
+  .steps li{
+    counter-increment:step; position:relative; padding:4px 0 18px 40px; margin:0;
+    border-left:2px solid var(--border); margin-left:15px;
+  }
+  .steps li:last-child{border-left-color:transparent; padding-bottom:0;}
+  .steps li::before{
+    content:counter(step); position:absolute; left:-15px; top:2px;
+    width:30px; height:30px; border-radius:50%; background:var(--cyan); color:#fff;
+    font-weight:700; font-size:14px; display:flex; align-items:center; justify-content:center;
+  }
+  .steps li b{display:block; margin-bottom:3px; font-size:15px;}
+  .steps img{
+    display:block; max-width:100%; margin-top:10px; border:1px solid var(--border);
+    border-radius:8px; box-shadow:0 2px 8px rgba(20,30,50,.08);
+  }
+
+  table{width:100%; border-collapse:collapse; margin:16px 0; font-size:14.5px;}
+  th, td{text-align:left; padding:10px 12px; border-bottom:1px solid var(--border); vertical-align:top;}
+  th{background:#f3f6fb; font-weight:700; white-space:nowrap;}
+
+  kbd{
+    background:#f1f3f8; border:1px solid var(--border); border-bottom-width:2px;
+    border-radius:5px; padding:1px 7px; font-family:var(--mono); font-size:13px;
+  }
+  code{
+    background:#f1f3f8; border-radius:5px; padding:1px 6px; font-family:var(--mono); font-size:13.5px;
+  }
+
+  .glossary dt{font-weight:700; margin-top:14px;}
+  .glossary dd{margin:2px 0 0; color:var(--muted);}
+
+  .back-to-top{
+    display:inline-block; margin-top:6px; font-size:13px; color:var(--muted); text-decoration:none;
+  }
+  .back-to-top:hover{color:var(--cyan);}
+
+  footer{
+    max-width:760px; margin:0 auto; padding:24px 40px 60px; color:var(--muted); font-size:13px;
+  }
+
+  @media (max-width:820px){
+    .layout{flex-direction:column;}
+    nav.toc{
+      position:static; width:auto; height:auto; border-right:none;
+      border-bottom:1px solid var(--border); padding:20px;
+    }
+    main{padding:28px 20px 80px; max-width:none;}
+  }
+</style>
+</head>
+<body id="top">
+<div class="layout">
+
+  <nav class="toc">
+    <div class="app-name">🎚 R-key changer</div>
+    <div class="app-sub">使い方ガイド</div>
+    <div class="search-hint">
+      調べたい言葉がある場合は <kbd>Ctrl</kbd>+<kbd>F</kbd> で
+      このページ内をキーワード検索できます。
+    </div>
+    <div class="search-box">
+      <div class="row">
+        <input type="text" id="pageSearchInput" placeholder="キーワードを入力"
+          aria-label="ページ内キーワード検索">
+        <button type="button" class="btn-find" id="pageSearchButton">🔍 検索</button>
+      </div>
+      <button type="button" class="btn-next" id="pageSearchNext" hidden>次の場所へ ▼</button>
+      <div class="result" id="pageSearchResult"></div>
+    </div>
+    <ol>
+      <li><a href="#about">① これは何のアプリ？</a></li>
+      <li><a href="#prepare">② 最初にやること</a></li>
+      <li><a href="#start">③ アプリの開き方</a></li>
+      <li><a href="#screen">④ 画面の見方</a>
+        <ol class="sub">
+          <li><a href="#screen-conn">接続タブ</a></li>
+          <li><a href="#screen-key">キータブ</a></li>
+          <li><a href="#screen-acoustic">音響タブ</a></li>
+          <li><a href="#screen-eq">EQタブ</a></li>
+        </ol>
+      </li>
+      <li><a href="#usage">⑤ 実際に使ってみる</a></li>
+      <li><a href="#acoustic">⑥ 音響（LIVE SPACE）を楽しむ</a></li>
+      <li><a href="#eq">⑦ EQ（イコライザー）で音色を整える</a></li>
+      <li><a href="#end">⑧ 終わるとき</a></li>
+      <li><a href="#faq">⑨ 困ったときは</a></li>
+      <li><a href="#limits">⑩ できないこと</a></li>
+      <li><a href="#glossary">⑪ 用語集</a></li>
+      <li><a href="#rights">⑫ 著作権について</a></li>
+      <li><a href="#developer">⑬ 開発者情報</a></li>
+    </ol>
+  </nav>
+
+  <main>
+    <h1>R-key changer 使い方ガイド</h1>
+    <p class="lead">
+      専門的な言葉をできるだけ使わず、上から順に読むだけで使えるように
+      まとめました。左のメニューからは、読みたい場所へ直接ジャンプできます。
+    </p>
+    <div class="callout note">
+      このページを開くと、ブラウザの一番上（アドレス欄）に見慣れない
+      文字列が表示されることがあります。これは<b>ご自身のパソコンの中にある
+      ファイルの場所を示しているだけ</b>で、不具合や情報の送信とは関係
+      ありません。気にせず読み進めてください。
+    </div>
+
+    <section id="about">
+      <h2><span class="num">01</span> これは何のアプリ？</h2>
+      <p>
+        パソコンで流れている曲や音を、<b>その場でキー（音の高さ）を変えて</b>
+        聴けるアプリです。
+      </p>
+      <ul>
+        <li>「カラオケで歌いたいけど、原曲のキーが高い（低い）」というときに、
+          聴きながらちょうど良いキーを探せます</li>
+        <li>曲のファイルを用意する必要はありません。いつも通り再生するだけです</li>
+        <li><b>ダウンロードや録音は一切しません。</b>いま鳴っている音を、その場で
+          加工して鳴らし直しているだけです</li>
+      </ul>
+      <div class="callout warn">
+        <b>Windows専用です。</b> Mac・Linuxでは動作しません。
+      </div>
+      <p>
+        現在、動作を確認しているのは <b>YouTube</b> です。それ以外のサービスでは
+        確認していないため、うまく動かないことがあります。
+      </p>
+      <div class="callout warn">
+        <b>Apple Musicとの併用はおすすめしません。</b>
+        Windows版のApple Musicには、パソコンの音の出口が切り替わると
+        再生エラーが起きることがある、という以前から知られた不具合が
+        あるかもしれません。R-key changerは起動時に音の出口を自動で
+        切り替えるため、Apple Music再生中に起動すると、曲が勝手に
+        切り替わったり、エラーが表示されたりすることがあります。
+        YouTubeなど、他のサービスのご利用をおすすめします。
+      </div>
+      <a class="back-to-top" href="#top">▲ 目次へ戻る</a>
+    </section>
+
+    <section id="prepare">
+      <h2><span class="num">02</span> 最初にやること（1回だけ）</h2>
+      <p>
+        このアプリを使うには、<b>VB-CABLE</b>という無料のソフトをパソコンに
+        入れる必要があります。VB-CABLEが何かは
+        <a href="#glossary-vbcable">用語集</a>で説明していますが、
+        ここでは「音をR-key changerに渡すための、見えないケーブル」くらいの
+        イメージで大丈夫です。
+      </p>
+      <ol class="steps">
+        <li>
+          <b>vb-audio.com を開く</b>
+          <a href="https://vb-audio.com/Cable/" target="_blank" rel="noopener">
+            https://vb-audio.com/Cable/</a> にアクセスします
+        </li>
+        <li>
+          <b>「Download」ボタンをクリックする</b>
+          「New Package」の下にある、Windowsマークの付いた
+          「Download」ボタンを押します
+          <img src="01-download.png" alt="VB-CABLEのダウンロードページで、New Packageの下のDownloadボタンを示す画像">
+        </li>
+        <li>
+          <b>ダウンロードしたファイルを右クリックする</b>
+          <code>VBCABLE_Driver_Pack45.zip</code>のような名前の
+          zipファイルです
+          <img src="02-right-click-zip.png" alt="ダウンロードしたzipファイルを右クリックしている画像">
+        </li>
+        <li>
+          <b>「すべて展開...」をクリックする</b>
+          右クリックで出てくるメニューの中にあります
+          <img src="03-extract-all.png" alt="右クリックメニューの「すべて展開...」を示す画像">
+        </li>
+        <li>
+          <b>そのまま「展開」をクリックする</b>
+          展開先はそのままで大丈夫です
+          <img src="05-extract-open.png" alt="展開先を選ぶ画面で、展開ボタンを示す画像">
+        </li>
+        <li>
+          <b>展開されたフォルダを開く</b>
+          zipと同じ場所にできた、フォルダのアイコンをダブルクリックします
+          <img src="04-open-folder.png" alt="展開後にできたフォルダを示す画像">
+        </li>
+        <li>
+          <b><code>VBCABLE_Setup_x64.exe</code> を実行する</b>
+          多くのパソコン（64bit版Windows）ではこちらを使います
+          <img src="06-run-setup.png" alt="フォルダの中のVBCABLE_Setup_x64.exeを示す画像">
+        </li>
+        <li>
+          <b>「Install Driver」をクリックする</b>
+          インストーラーが起動したら、このボタンを押します
+        </li>
+        <li>
+          <b>「インストール」をクリックする</b>
+          Windowsから確認画面が出ることがありますが、そのまま進めます
+        </li>
+        <li>
+          <b>「Installation Complete and Successfully!」と表示されたら成功</b>
+          この画面が出れば、VB-CABLEの導入は完了です
+        </li>
+        <li>
+          <b>パソコンを再起動する</b>
+          これは必須の作業です。再起動しないと使えません
+        </li>
+      </ol>
+      <div class="callout tip">
+        ここまで終われば準備完了です。この作業は<b>最初の1回だけ</b>で、
+        次回からは不要です。
+      </div>
+      <a class="back-to-top" href="#top">▲ 目次へ戻る</a>
+    </section>
+
+    <section id="start">
+      <h2><span class="num">03</span> アプリの開き方</h2>
+      <p><code>R-key changer.exe</code> を<b>ダブルクリック</b>するだけです。
+        インストール作業は要りません。</p>
+      <h3>初回だけ出る警告について</h3>
+      <p>
+        初めて開いたとき、Windowsから
+        <b>「WindowsによってPCが保護されました」</b>という青い画面が
+        出ることがあります。
+      </p>
+      <div class="callout tip">
+        これは<b>アプリに問題があるという意味ではありません。</b>
+        「あまり有名ではない開発元のアプリ」に対して、Windowsが念のため
+        表示する一般的な警告です。次の手順で開けます。
+      </div>
+      <ol class="steps">
+        <li>
+          <b>「詳細情報」をクリックする</b>
+          画面の中にある文字をクリックします
+          <img src="01-warning_screen.png" alt="Windowsの警告画面で「詳細情報」のリンクを示す画像">
+        </li>
+        <li>
+          <b>「実行」をクリックする</b>
+          アプリ名（<code>R-key changer.exe</code>）が表示されるので、
+          下に出てくる「実行」ボタンを押すと起動します
+          <img src="02-warning_screen_detail.png" alt="詳細情報を開いた後の画面で、実行ボタンを示す画像">
+        </li>
+      </ol>
+      <p>この画面が出るのは最初の1回だけです。</p>
+      <a class="back-to-top" href="#top">▲ 目次へ戻る</a>
+    </section>
+
+    <section id="screen">
+      <h2><span class="num">04</span> 画面の見方</h2>
+      <p>
+        アプリの画面は、上のタブで4つに分かれています。それぞれのタブが
+        何をする場所か、順番に紹介します。
+      </p>
+
+      <h3 id="screen-conn">🔌 接続タブ</h3>
+      <p>
+        「入力」と「出力」のデバイス（音の通り道）を選ぶ場所です。多くの場合、
+        最初から正しく選ばれているため、触る必要はありません。
+      </p>
+      <table>
+        <tr><th>入力</th><td><code>CABLE Output</code> を選びます（VB-CABLEから音を受け取る側）</td></tr>
+        <tr><th>出力</th><td>実際に音を聞きたい機器（スピーカー・ヘッドホン）を選びます</td></tr>
+      </table>
+      <p>
+        画面上部の●が緑色の「接続済み」なら準備OKです。赤色の
+        「接続エラー」になっている場合は、この2つの欄を確認してください。
+      </p>
+
+      <h3 id="screen-key">🎚 キータブ</h3>
+      <p>キー（音の高さ）を変える操作と、出力音量の調整をする場所です。</p>
+      <ul>
+        <li><b>▲▼ボタン</b>（またはキーボードの↑↓キー）でキーを半音ずつ動かせます</li>
+        <li><b>±0</b> と表示されているときが原曲のキーです</li>
+        <li>動かせる範囲は <b>-12 〜 +12</b>（1オクターブ分）です</li>
+        <li><b>🖥 出力音量</b>のスライダーで、実際のスピーカー/ヘッドホンの音量そのものを調整できます</li>
+      </ul>
+
+      <h3 id="screen-acoustic">🔊 音響タブ</h3>
+      <p>
+        ライブ会場で聴いているような響き（LIVE SPACE）を加える場所です。
+        詳しくは<a href="#acoustic">⑥ 音響（LIVE SPACE）を楽しむ</a>で
+        説明します。使わなくても、普段どおりキー変更だけを楽しめます。
+      </p>
+
+      <h3 id="screen-eq">🎛 EQタブ</h3>
+      <p>
+        音の低音・高音のバランスを自分好みに調整する場所です。
+        詳しくは<a href="#eq">⑦ EQ（イコライザー）で音色を整える</a>で
+        説明します。こちらも使わなくても普段どおり楽しめます。
+      </p>
+
+      <h3 id="screen-header">画面上部のボタン</h3>
+      <p>タブの上、画面右上に並んでいる3つのボタンです。</p>
+      <table>
+        <tr><th>⚙</th><td>音飛びしやすいときに調整する詳細設定を開きます（普段は触らなくて大丈夫です）</td></tr>
+        <tr><th>📊</th><td>今のパソコン全体のメモリ・CPU使用率を確認できます。他のアプリを開きすぎて重くなっていないか確認したいときに使ってください</td></tr>
+        <tr><th>？</th><td>この使い方ガイドや、開発者への問い合わせ先を開きます</td></tr>
+      </table>
+      <a class="back-to-top" href="#top">▲ 目次へ戻る</a>
+    </section>
+
+    <section id="usage">
+      <h2><span class="num">05</span> 実際に使ってみる</h2>
+      <ol class="steps">
+        <li>
+          <b>アプリを開く</b>
+          開いた瞬間、パソコンの音の出口が自動でVB-CABLEに切り替わります。
+          この間、一時的にスピーカーから音が聞こえなくなりますが、
+          故障ではありません。
+        </li>
+        <li>
+          <b>曲を再生する</b>
+          YouTubeなど、いつも通り好きな曲を再生します。
+        </li>
+        <li>
+          <b>「▶ 開始」を押す</b>
+          曲がヘッドホンやスピーカーから聞こえてきます。
+        </li>
+        <li>
+          <b>▲▼ボタンでキーを変える</b>
+          曲を止めずに、その場でキーが変わります。
+        </li>
+      </ol>
+      <div class="callout note">
+        Windowsのサウンド設定を直接見たいときは、
+        <kbd>Windowsキー</kbd> + <kbd>R</kbd> を押して「ファイル名を指定して
+        実行」を開き、<code>mmsys.cpl</code> と入力してEnterを押すと、
+        すぐに再生デバイスの一覧が開きます。
+      </div>
+      <a class="back-to-top" href="#top">▲ 目次へ戻る</a>
+    </section>
+
+    <section id="acoustic">
+      <h2><span class="num">06</span> 音響（LIVE SPACE）を楽しむ</h2>
+      <p>
+        「音響」タブをONにすると、ただキーを変えるだけでなく、
+        <b>ライブハウスやコンサートホールで聴いているような響き</b>を
+        加えて楽しめます。難しい設定を理解しなくても、
+        <b>プリセット</b>を選ぶだけで手軽に試せます。
+      </p>
+
+      <h3>プリセット</h3>
+      <p>会場の種類をまとめて選べます。まずはこれだけ触れば十分です。</p>
+      <table>
+        <tr><th>Studio</th><td>ほぼ原音のまま。響きを控えめにしたいときに</td></tr>
+        <tr><th>Small Live House</th><td>小さなライブハウスのような、近くて元気な響き</td></tr>
+        <tr><th>Concert Hall</th><td>コンサートホールのような、豊かな響き</td></tr>
+        <tr><th>Arena</th><td>アリーナ規模の広い会場の響き</td></tr>
+        <tr><th>Stadium</th><td>スタジアム級の、非常に大きな響き</td></tr>
+        <tr><th>(Best Seat) 付きのもの</th><td>大きな会場でも歌声がぼやけにくい、聴きやすさ重視の調整</td></tr>
+        <tr><th>Live 1〜5</th><td>会場の規模がだんだん大きくなっていくバリエーション</td></tr>
+      </table>
+
+      <h3>客席（前方 / 中央 / 後方）</h3>
+      <p>
+        会場のどのあたりで聴いているかを選びます。<b>前方</b>は音が
+        はっきりと近く聞こえ、<b>後方</b>は少し遠くに、響きも多めに
+        感じられます。
+      </p>
+
+      <h3>出力（ヘッドホン / スピーカー）</h3>
+      <p>
+        今どちらで聴いているかを選びます。スピーカーを選ぶと、広がりが
+        少し控えめに調整されます（スピーカーはそれ自体で音が広がるため）。
+      </p>
+
+      <h3>バイノーラル</h3>
+      <p>
+        ヘッドホンで聴いているときだけ使える機能です。ONにすると、
+        響きの部分が「頭の中」ではなく「自分の周りの空間」から聞こえる
+        ように感じられます。歌声そのものの音は変わりません。
+        人によって感じ方の差があるので、合わないと感じたらOFFに
+        戻してください。
+      </p>
+
+      <h3>細かい調整（詳しい人向け）</h3>
+      <p>
+        ルーム・反射・残響・エコー・ステレオという5つのカードで、
+        さらに細かく調整できます。動かすとプリセットの表示が
+        「Custom」に変わりますが、いつでも別のプリセットを選び直せば
+        元に戻せます。
+      </p>
+      <p>
+        「ステレオ」カードの<b>ボーカル</b>は、会場の広がりとは関係なく
+        歌声の音量だけを上げ下げできるつまみです。会場を広く・遠くする
+        設定にしても歌声が埋もれてしまうときは、これを上げると聞き取り
+        やすくなります。100%が基準（何もしない状態）です。
+      </p>
+      <a class="back-to-top" href="#top">▲ 目次へ戻る</a>
+    </section>
+
+    <section id="eq">
+      <h2><span class="num">07</span> EQ（イコライザー）で音色を整える</h2>
+      <p>
+        「EQ」タブをONにすると、低音から高音まで<b>10個の帯域</b>ごとに
+        音量を上げ下げして、音色そのものを自分好みに整えられます。
+        音響（LIVE SPACE）が「会場の響き」を加える機能なのに対し、
+        EQは「元の音のトーン」を調整する機能です。両方同時に使えます。
+      </p>
+
+      <h3>スライダーの見方</h3>
+      <p>
+        31Hz（低い音）から16kHz（高い音）まで、10本のスライダーが
+        並んでいます。右へ動かすとその帯域の音が大きく、左へ動かすと
+        小さくなります。<b>±0.0 dB</b>が何も変えていない状態です。
+      </p>
+
+      <h3>プリセット</h3>
+      <p>細かい帯域を1つずつ調整しなくても、プリセットを選ぶだけで手軽に試せます。</p>
+      <table>
+        <tr><th>Flat</th><td>何も変えない、原音そのまま</td></tr>
+        <tr><th>Vocal</th><td>歌声の帯域を持ち上げ、聞き取りやすくする</td></tr>
+        <tr><th>Karaoke</th><td>カラオケ向けに中〜高音を少し強調</td></tr>
+        <tr><th>Bass Boost</th><td>低音を強調し、迫力を出す</td></tr>
+        <tr><th>Treble Boost</th><td>高音を強調し、抜けの良い音に</td></tr>
+        <tr><th>Clear</th><td>こもりを抑え、すっきりした音に</td></tr>
+        <tr><th>Rock</th><td>低音と高音を持ち上げ、メリハリのある音に</td></tr>
+      </table>
+      <p>
+        スライダーを1つでも手で動かすと、プリセットの表示が自動で
+        「Custom」に変わります。<b>RESET</b>ボタンを押せば、いつでも
+        全帯域を0dB（何もしない状態）へ戻せます。
+      </p>
+      <div class="callout note">
+        帯域を大きく持ち上げすぎると音が歪んで聞こえることがあります。
+        違和感を感じたら、まず該当のスライダーを0dB付近へ戻してみてください。
+      </div>
+      <a class="back-to-top" href="#top">▲ 目次へ戻る</a>
+    </section>
+
+    <section id="end">
+      <h2><span class="num">08</span> 終わるとき</h2>
+      <p>
+        「■ 停止」を押すか、そのままウィンドウを閉じてください。
+        パソコンの音の出口は<b>自動で元に戻ります。</b>特別な操作は
+        要りません。
+      </p>
+      <a class="back-to-top" href="#top">▲ 目次へ戻る</a>
+    </section>
+
+    <section id="faq">
+      <h2><span class="num">09</span> 困ったときは</h2>
+
+      <h3>音が二重に聞こえる</h3>
+      <p>「接続」タブの「入力」が <code>CABLE Output</code> になっているか確認してください。</p>
+
+      <h3>何も聞こえない</h3>
+      <ul>
+        <li>曲は実際に再生されていますか？</li>
+        <li>「入力」が <code>CABLE Output</code> になっていますか？</li>
+        <li>「出力」が、実際に音を聞きたい機器になっていますか？</li>
+      </ul>
+
+      <h3>再生中に「接続が切れたため停止しました」と表示された</h3>
+      <p>
+        ヘッドホンを抜いた・USB機器が外れたなど、デバイスとの接続が
+        切れたことを検知すると、自動で止まって音の出口も元に戻します。
+        機器を接続し直してから、「一覧を更新」→「▶ 開始」を押してください。
+      </p>
+
+      <h3>「音声デバイスを開けませんでした」と出る</h3>
+      <p>
+        デバイス名の後ろに <code>[Windows WDM-KS]</code> と書かれたものは
+        開けないことがあります。同じ名前で <code>[MME]</code> や
+        <code>[Windows WASAPI]</code> と書かれた方を選び直してください。
+      </p>
+
+      <h3>アプリを閉じたあと、音が全く出なくなった</h3>
+      <p>通常は自動で元に戻りますが、まれに反映が遅れることがあります。次の順に試してください。</p>
+      <ol class="steps">
+        <li><b>もう一度アプリを開いて、そのまま閉じ直す</b>
+          これだけで直ることがよくあります</li>
+        <li><b>それでも直らなければ、Windowsの設定を開く</b>
+          <code>設定 → システム → サウンド → 出力</code> で、一度別の
+          デバイスに変えてから、もう一度スピーカーに戻してください。
+          同じデバイスを選び直すだけでは反映されないことがあります</li>
+      </ol>
+
+      <h3>原因がよく分からない不具合が起きた</h3>
+      <p>
+        パソコンの中の <code>%LOCALAPPDATA%\R-key changer\logs\r-key-changer.log</code>
+        というファイルに、記録が残っています。開発者に問い合わせる際、
+        この内容を伝えていただけると調査しやすくなります。
+      </p>
+      <div class="callout warn">
+        このファイルのパスにはご自身のWindowsのユーザー名が含まれます。
+        他の人に渡す前に、念のため中身を確認してください。
+      </div>
+      <a class="back-to-top" href="#top">▲ 目次へ戻る</a>
+    </section>
+
+    <section id="limits">
+      <h2><span class="num">10</span> できないこと</h2>
+      <ul>
+        <li><b>マイクで拾った自分の声は変えられません。</b>変えられるのは
+          パソコンから聞こえる音（曲）だけです。弾き語りのように、自分の
+          声と一緒に鳴らして確認する使い方には向きません</li>
+        <li>曲のダウンロード・保存・録音・配信はできません（そもそも
+          そういう機能がありません）</li>
+      </ul>
+      <a class="back-to-top" href="#top">▲ 目次へ戻る</a>
+    </section>
+
+    <section id="glossary">
+      <h2><span class="num">11</span> 用語集</h2>
+      <dl class="glossary">
+        <dt id="glossary-vbcable">VB-CABLE</dt>
+        <dd>パソコンの音をR-key changerへ渡すための、無料の仮想的な
+          音声ケーブル。パソコンの中に見えないケーブルを1本増やす
+          ようなもの。</dd>
+
+        <dt>CABLE Output / CABLE Input</dt>
+        <dd>VB-CABLEが作る2つの端子。曲を再生するアプリは
+          「CABLE Input」に向けて音を出し、R-key changerが
+          「CABLE Output」からその音を受け取ります。</dd>
+
+        <dt>入力 / 出力</dt>
+        <dd>入力＝R-key changerが音を受け取る場所（CABLE Output）。
+          出力＝実際に音が鳴る場所（スピーカーやヘッドホン）。</dd>
+
+        <dt>プリセット</dt>
+        <dd>複数の設定をまとめて呼び出せる「ひな形」。音響タブで
+          会場の種類をまとめて選べます。</dd>
+
+        <dt>LIVE SPACE / 音響</dt>
+        <dd>キー変更のあとに加える、会場の響きの効果のこと。</dd>
+
+        <dt>バイノーラル</dt>
+        <dd>ヘッドホン向けに、響きが「頭の中」ではなく周りの空間から
+          聞こえるように感じさせる技術。</dd>
+      </dl>
+      <a class="back-to-top" href="#top">▲ 目次へ戻る</a>
+    </section>
+
+    <section id="rights">
+      <h2><span class="num">12</span> 著作権について</h2>
+      <p>
+        R-key changerは、パソコンで再生されている音声をその場で加工して
+        再生するためのアプリです。音楽などのコンテンツのダウンロード・
+        録音・保存・配信は行いません。
+      </p>
+      <p>
+        各サービスをご利用の際は、それぞれの利用規約および著作権法などの
+        関係するルールに従ってください。本アプリは、著作権で保護された
+        コンテンツの無断複製・配布・公開などを目的としたものではありません。
+      </p>
+      <p>
+        本アプリの利用によって生じたコンテンツ利用上の問題について、
+        開発者は責任を負いかねます。利用するコンテンツについては、
+        利用者ご自身で適切にご確認ください。
+      </p>
+      <a class="back-to-top" href="#top">▲ 目次へ戻る</a>
+    </section>
+
+    <section id="developer">
+      <h2><span class="num">13</span> 開発者情報</h2>
+      <table>
+        <tr><th>開発者</th><td>Malta</td></tr>
+        <tr><th>問い合わせ・不具合報告</th>
+          <td><a href="https://github.com/MalProject1122/" target="_blank" rel="noopener">
+            https://github.com/MalProject1122/</a></td></tr>
+      </table>
+      <h3>開発環境</h3>
+      <table>
+        <tr><th>使用ソフト</th><td>Claude Code、Visual Studio 2022 Build Tools（C言語のビルド用）</td></tr>
+        <tr><th>使用言語</th><td>Python（アプリ本体）、C（メモリ・CPU使用率の取得部分）、HTML / JavaScript（この説明書ページ）</td></tr>
+      </table>
+      <h3>動作確認環境</h3>
+      <p>このアプリは、主に次の環境で動作を確認しながら開発しています。</p>
+      <table>
+        <tr><th>OS</th><td>Windows 11</td></tr>
+        <tr><th>プロセッサ</th><td>13th Gen Intel(R) Core(TM) i5-1335U (1.30 GHz)</td></tr>
+      </table>
+      <div class="callout note">
+        これより性能が低いパソコンでも基本的には動きますが、キー変更や
+        音響処理の負荷が高い設定（会場を広くする・複数の効果を同時に
+        強くするなど）では、環境によって音が途切れやすくなることが
+        あります。気になる場合は「⚙ 詳細設定」からコールバックサイズを
+        大きくしてみてください。
+      </div>
+      <a class="back-to-top" href="#top">▲ 目次へ戻る</a>
+    </section>
+  </main>
+</div>
+<footer>R-key changer 使い方ガイド</footer>
+
+<script>
+(function () {
+  "use strict";
+  var main = document.querySelector("main");
+  var input = document.getElementById("pageSearchInput");
+  var findButton = document.getElementById("pageSearchButton");
+  var nextButton = document.getElementById("pageSearchNext");
+  var resultLabel = document.getElementById("pageSearchResult");
+  var hits = [];
+  var currentIndex = -1;
+
+  function clearHighlights() {
+    var marks = main.querySelectorAll("mark.hit");
+    marks.forEach(function (mark) {
+      var text = document.createTextNode(mark.textContent);
+      mark.replaceWith(text);
+    });
+    main.normalize();
+    hits = [];
+    currentIndex = -1;
+  }
+
+  function highlightTextNodes(root, query) {
+    var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
+    var targets = [];
+    var node;
+    while ((node = walker.nextNode())) {
+      if (node.nodeValue.toLowerCase().indexOf(query) !== -1) {
+        targets.push(node);
+      }
+    }
+    targets.forEach(function (node) {
+      var text = node.nodeValue;
+      var lower = text.toLowerCase();
+      var frag = document.createDocumentFragment();
+      var pos = 0;
+      var idx;
+      while ((idx = lower.indexOf(query, pos)) !== -1) {
+        if (idx > pos) {
+          frag.appendChild(document.createTextNode(text.slice(pos, idx)));
+        }
+        var mark = document.createElement("mark");
+        mark.className = "hit";
+        mark.textContent = text.slice(idx, idx + query.length);
+        frag.appendChild(mark);
+        hits.push(mark);
+        pos = idx + query.length;
+      }
+      frag.appendChild(document.createTextNode(text.slice(pos)));
+      node.replaceWith(frag);
+    });
+  }
+
+  function focusHit(index) {
+    if (hits.length === 0) return;
+    if (currentIndex >= 0 && hits[currentIndex]) {
+      hits[currentIndex].classList.remove("current");
+    }
+    currentIndex = (index + hits.length) % hits.length;
+    var hit = hits[currentIndex];
+    hit.classList.add("current");
+    hit.scrollIntoView({ behavior: "smooth", block: "center" });
+    resultLabel.textContent = hits.length + " 件見つかりました（" + (currentIndex + 1) + " 件目）";
+  }
+
+  function runSearch() {
+    clearHighlights();
+    var query = input.value.trim().toLowerCase();
+    if (!query) {
+      resultLabel.textContent = "";
+      nextButton.hidden = true;
+      return;
+    }
+    highlightTextNodes(main, query);
+    if (hits.length === 0) {
+      resultLabel.textContent = "見つかりませんでした";
+      nextButton.hidden = true;
+      return;
+    }
+    nextButton.hidden = false;
+    focusHit(0);
+  }
+
+  findButton.addEventListener("click", runSearch);
+  input.addEventListener("keydown", function (event) {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      runSearch();
+    }
+  });
+  nextButton.addEventListener("click", function () {
+    if (hits.length === 0) return;
+    focusHit(currentIndex + 1);
+  });
+})();
+</script>
+</body>
+</html>
