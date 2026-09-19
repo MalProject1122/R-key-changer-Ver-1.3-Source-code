@@ -174,7 +174,7 @@ _SETUP_STEPS: tuple[tuple[str, str], ...] = (
     ),
     (
         "② 聴きたい音楽を再生する",
-        "Apple Music・YouTube など、いつも通り再生するだけです。"
+        "YouTube など、いつも通り再生するだけです（Apple Music では使えません）。"
         "ファイルの保存やダウンロードは行いません。",
     ),
     (
@@ -1354,7 +1354,7 @@ class LiveMonitorWindow(ctk.CTkToplevel):
 
         ctk.CTkLabel(
             panel,
-            text="音声コールバックサイズ",
+            text="バッファサイズ",
             font=self._font_eyebrow,
             text_color=theme.MUTED,
             anchor="w",
