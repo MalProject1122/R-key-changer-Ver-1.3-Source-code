@@ -1,0 +1,9 @@
+# R-key changer 必須ライブラリ
+#   pip install -r requirements.txt
+
+sounddevice>=0.5.0    # 音声の入出力（PortAudio 同梱）
+numpy>=2.0            # 波形演算
+customtkinter>=5.2    # GUI
+
+# 既定の出力デバイスをプログラムから切り替えるために使う（Windows専用）。
+comtypes>=1.2 ; sys_platform == "win32"
